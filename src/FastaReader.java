@@ -59,25 +59,7 @@ public class FastaReader extends JPanel implements ActionListener{
 
 	        if (returnVal == JFileChooser.APPROVE_OPTION) 
 	        {
-	            File file = fileChooser.getSelectedFile();
-	            
-	            //ABSTRACT THIS INTO ITS OWN FUNCTION void readFile() 
-	            try {
-					BufferedReader reader = new BufferedReader(new FileReader(file));
-					
-					while((lineForReading = reader.readLine()) != null)
-					{
-						fastaLines.add(lineForReading);
-					}
-					
-					 reader.close();
-				} catch (FileNotFoundException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+	        	readFile();
 	        }
 		}//end if
 		
@@ -86,7 +68,30 @@ public class FastaReader extends JPanel implements ActionListener{
 			displayFastaLine();
 		}
        
-    }
+    }//end actionPerformed()
+	
+	public void readFile()
+	{
+		File file = fileChooser.getSelectedFile();
+        
+        try {
+			BufferedReader reader = new BufferedReader(new FileReader(file));
+			
+			while((lineForReading = reader.readLine()) != null)
+			{
+				fastaLines.add(lineForReading);
+			}
+			
+			 reader.close();
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+	}//end readFile()
 	
 	public void createGui()
 	{
@@ -96,14 +101,11 @@ public class FastaReader extends JPanel implements ActionListener{
         
         buttonPanel.add(openButton);
         buttonPanel.add(displayLines);
-		
-
+	
         //Add content to the window.
         frame.add(new FastaReader());
         frame.getContentPane().add(buttonPanel);
         
-        
-
         //Display the window.
         frame.pack();
         frame.setVisible(true);
