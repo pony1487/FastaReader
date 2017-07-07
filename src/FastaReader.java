@@ -125,16 +125,19 @@ public class FastaReader extends JPanel implements ActionListener{
 	{
 		int digitCount = 0;
 		int numberStartIndex = 3;
-		int maxDigitsInNumber = 10;//ask becky how big that number can be
+		int maxDigitsInNumber = 4;//ask becky how big that number can be, Just lookin at the file it looks like 4
 		char c;
+		int numOfZeros = 0;
+		String zeros = "";
 		String editedString = fastaLines.get(0);
+		StringBuilder stringBuilder;
 		
 		
-		//get count of numbers
+		//get count of numbers and set amount of zeros to be inserted
 		for(int i = numberStartIndex; i < editedString.length();i++)
 		{
 			c = editedString.charAt(i);
-			//System.out.print(editedString.charAt(i));
+			//
 			if(c == ' ')
 			{
 				break;
@@ -142,11 +145,39 @@ public class FastaReader extends JPanel implements ActionListener{
 			else
 			{
 				digitCount++;
+				System.out.print(editedString.charAt(i));
 				
 			}
+			
+			numOfZeros = maxDigitsInNumber - digitCount;
 		}
+		
+		//set zero string
+		switch(numOfZeros)
+		{
+		case 1:
+			zeros = "0";
+			break;
+		case 2:
+			zeros = "00";
+			break;
+		case 3:
+			zeros = "000";
+			break;
+		case 4:
+			zeros = "0000";
+			break;
+		}
+		
 		System.out.println("\n");
 		System.out.println("Num of digits: " + digitCount);
+		System.out.println("Num of zeros: " + numOfZeros);
+		System.out.println("Zero String: " + zeros);
+		
+		stringBuilder = new StringBuilder(editedString);
+		stringBuilder.insert(3, zeros);
+		
+		System.out.println(stringBuilder.toString());
 		return " ";
 	}
 	
