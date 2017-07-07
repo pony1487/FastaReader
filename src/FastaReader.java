@@ -66,6 +66,8 @@ public class FastaReader extends JPanel implements ActionListener{
 		if (e.getSource() == displayLines) 
 		{
 			displayFastaLine();
+			//test delete this.
+			editString();
 		}
        
     }//end actionPerformed()
@@ -115,14 +117,44 @@ public class FastaReader extends JPanel implements ActionListener{
 	{
 		for(int i = 0; i < fastaLines.size();i++)
 		{
-			System.out.println(fastaLines.get(i));
+			//System.out.println(fastaLines.get(i));
 		}
 	}//end displayFastaLine()
+	
+	public String editString()
+	{
+		int digitCount = 0;
+		int numberStartIndex = 3;
+		int maxDigitsInNumber = 10;//ask becky how big that number can be
+		char c;
+		String editedString = fastaLines.get(0);
+		
+		
+		//get count of numbers
+		for(int i = numberStartIndex; i < editedString.length();i++)
+		{
+			c = editedString.charAt(i);
+			//System.out.print(editedString.charAt(i));
+			if(c == ' ')
+			{
+				break;
+			}
+			else
+			{
+				digitCount++;
+				
+			}
+		}
+		System.out.println("\n");
+		System.out.println("Num of digits: " + digitCount);
+		return " ";
+	}
 	
 	public static void main(String[] args)
 	{
 		FastaReader fr = new FastaReader();
 		fr.createGui();
+		
 		
 	}
 
