@@ -1,3 +1,6 @@
+/*
+ * REMEBER TO CLOSE FILES
+ */
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -12,9 +15,11 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList; 
 
@@ -29,12 +34,20 @@ public class FastaReader extends JPanel implements ActionListener{
 	private ArrayList<String> fastaLines;
 	private String lineForReading;
 	
+	private FileWriter fileWriter;
+	private BufferedWriter bufferedWriter;
+	private String currentFileName;
+	private String outputFileName;
+	private String fileNameWithoutExt;
+	
+	private static int fileNumber;
+	
 
 		
 	public FastaReader()
 	{
 		openButton = new JButton("Open Fasta File");
-		displayLines = new JButton("Display lines");
+		displayLines = new JButton("Format File");
 		
 		
 		openButton.addActionListener(this);
@@ -68,6 +81,7 @@ public class FastaReader extends JPanel implements ActionListener{
 			displayFastaLine();
 			//test delete this.
 			editString();
+			writeNewEditedFile();
 		}
        
     }//end actionPerformed()
@@ -75,6 +89,9 @@ public class FastaReader extends JPanel implements ActionListener{
 	public void readFile()
 	{
 		File file = fileChooser.getSelectedFile();
+		//is this needed?
+		currentFileName = file.getName();
+		fileNameWithoutExt = currentFileName.substring(0,currentFileName.lastIndexOf("."));
         
         try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -94,6 +111,30 @@ public class FastaReader extends JPanel implements ActionListener{
 		}
 		
 	}//end readFile()
+	
+	public void writeNewEditedFile()
+	{
+		
+		outputFileName = String.format(fileNameWithoutExt + "%02d.fasta",fileNumber++);
+		
+		
+		
+		File outputFile = new File(outputFileName);
+		
+		
+		try {
+			fileWriter = new FileWriter(outputFile);
+			bufferedWriter = new BufferedWriter(fileWriter);
+			bufferedWriter.write(fastaLines.get(0));
+			bufferedWriter.flush();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
 	
 	public void createGui()
 	{
@@ -169,15 +210,18 @@ public class FastaReader extends JPanel implements ActionListener{
 			break;
 		}
 		
+		/*
 		System.out.println("\n");
 		System.out.println("Num of digits: " + digitCount);
 		System.out.println("Num of zeros: " + numOfZeros);
 		System.out.println("Zero String: " + zeros);
-		
+		*/
 		stringBuilder = new StringBuilder(editedString);
 		stringBuilder.insert(3, zeros);
 		
 		System.out.println(stringBuilder.toString());
+		//System.out.println(fileNameWithoutExt);
+		
 		return " ";
 	}
 	
