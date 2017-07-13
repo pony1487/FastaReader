@@ -7,11 +7,14 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -21,7 +24,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList; 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner; 
 
 public class FastaReader extends JPanel implements ActionListener{
 	
@@ -29,10 +34,11 @@ public class FastaReader extends JPanel implements ActionListener{
 	private JFrame frame;
 	private JPanel buttonPanel;
 	private JButton openButton;
-	private JButton displayLines;
+	private JButton reassignSequenceNumber;
 	
 	private ArrayList<String> fastaLines;
-	private String lineForReading;
+	private ArrayList<String> editedFastaLines;
+	
 	
 	private FileWriter fileWriter;
 	private BufferedWriter bufferedWriter;
@@ -42,16 +48,18 @@ public class FastaReader extends JPanel implements ActionListener{
 	
 	private static int fileNumber;
 	
+	private boolean fileOpened;
+	
 
 		
 	public FastaReader()
 	{
 		openButton = new JButton("Open Fasta File");
-		displayLines = new JButton("Format File");
+		reassignSequenceNumber = new JButton("Reassign Sequence Number");
 		
 		
 		openButton.addActionListener(this);
-		displayLines.addActionListener(this);
+		reassignSequenceNumber.addActionListener(this);
 		
 		buttonPanel = new JPanel();
 		
@@ -59,6 +67,9 @@ public class FastaReader extends JPanel implements ActionListener{
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		
 		fastaLines = new ArrayList<String>();
+		editedFastaLines = new ArrayList<String>();
+		
+		fileOpened = false;
 		
 		
 		
@@ -73,15 +84,21 @@ public class FastaReader extends JPanel implements ActionListener{
 	        if (returnVal == JFileChooser.APPROVE_OPTION) 
 	        {
 	        	readFile();
+	        	fileOpened = true;
 	        }
 		}//end if
 		
-		if (e.getSource() == displayLines) 
+		if (e.getSource() == reassignSequenceNumber) 
 		{
-			displayFastaLine();
-			//test delete this.
-			editString();
-			writeNewEditedFile();
+			if(fileOpened == false)
+			{
+				JOptionPane.showMessageDialog(null, "Please open Fasta file!", "Error",JOptionPane.ERROR_MESSAGE);
+			}
+			else
+			{
+				editString();
+				writeNewEditedFile();
+			}
 		}
        
     }//end actionPerformed()
@@ -89,17 +106,37 @@ public class FastaReader extends JPanel implements ActionListener{
 	public void readFile()
 	{
 		File file = fileChooser.getSelectedFile();
-		//is this needed?
+		
 		currentFileName = file.getName();
 		fileNameWithoutExt = currentFileName.substring(0,currentFileName.lastIndexOf("."));
+	
         
         try {
+        	
+        	/*
 			BufferedReader reader = new BufferedReader(new FileReader(file));
-			
+        	
 			while((lineForReading = reader.readLine()) != null)
 			{
+				
 				fastaLines.add(lineForReading);
+				
 			}
+			*/
+			
+        	
+        	//testing another way
+			Scanner reader = new Scanner(new FileReader(file));
+        	reader.useDelimiter(">");
+        	
+        	while (reader.hasNext()) {
+                
+        		//Add the > char that the scanner discards
+        		StringBuilder str = new StringBuilder(reader.next());
+        		str.insert(0,'>');
+        		fastaLines.add(str.toString());
+            }
+            
 			
 			 reader.close();
 		} catch (FileNotFoundException e1) {
@@ -125,7 +162,11 @@ public class FastaReader extends JPanel implements ActionListener{
 		try {
 			fileWriter = new FileWriter(outputFile);
 			bufferedWriter = new BufferedWriter(fileWriter);
-			bufferedWriter.write(fastaLines.get(0));
+			
+			for(int i = 0; i < editedFastaLines.size();i++)
+			{
+				bufferedWriter.write(editedFastaLines.get(i));
+			}
 			bufferedWriter.flush();
 			
 		} catch (IOException e) {
@@ -143,11 +184,14 @@ public class FastaReader extends JPanel implements ActionListener{
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         buttonPanel.add(openButton);
-        buttonPanel.add(displayLines);
+        buttonPanel.add(reassignSequenceNumber);
 	
         //Add content to the window.
         frame.add(new FastaReader());
         frame.getContentPane().add(buttonPanel);
+        //set size and location
+        frame.setPreferredSize(new Dimension(400, 300));
+        frame.setLocationRelativeTo(null);
         
         //Display the window.
         frame.pack();
@@ -158,71 +202,79 @@ public class FastaReader extends JPanel implements ActionListener{
 	{
 		for(int i = 0; i < fastaLines.size();i++)
 		{
-			//System.out.println(fastaLines.get(i));
+			System.out.println(fastaLines.get(i));
 		}
 	}//end displayFastaLine()
 	
-	public String editString()
+	
+	
+	public void editString()
 	{
 		int digitCount = 0;
 		int numberStartIndex = 3;
-		int maxDigitsInNumber = 4;//ask becky how big that number can be, Just lookin at the file it looks like 4
+		int maxDigitsInNumber = 5;//Num is max 5 digits long
 		char c;
 		int numOfZeros = 0;
 		String zeros = "";
-		String editedString = fastaLines.get(0);
+		String editedString;
 		StringBuilder stringBuilder;
 		
-		
-		//get count of numbers and set amount of zeros to be inserted
-		for(int i = numberStartIndex; i < editedString.length();i++)
+		//loop and edit each String in ArrayList and add to new ArrayList
+		for(int j = 0; j < fastaLines.size();j++)
 		{
-			c = editedString.charAt(i);
-			//
-			if(c == ' ')
+			editedString = fastaLines.get(j);
+			digitCount = 0;
+			
+			//get count of numbers and set amount of zeros to be inserted
+			for(int i = numberStartIndex; i < editedString.length();i++)
 			{
-				break;
-			}
-			else
-			{
-				digitCount++;
-				System.out.print(editedString.charAt(i));
+				c = editedString.charAt(i);
+				//
+				if(c == ' ')
+				{
+					break;
+				}
+				else
+				{
+					digitCount++;
+					//System.out.print(editedString.charAt(i));
+					
+				}
 				
+				numOfZeros = maxDigitsInNumber - digitCount;
+				System.out.println(numOfZeros);
 			}
 			
-			numOfZeros = maxDigitsInNumber - digitCount;
+			//set zero string
+			switch(numOfZeros)
+			{
+			case 1:
+				zeros = "0";
+				break;
+			case 2:
+				zeros = "00";
+				break;
+			case 3:
+				zeros = "000";
+				break;
+			case 4:
+				zeros = "0000";
+				break;
+			default:
+				zeros = "";
+				break;
+			}
+			
+			
+			stringBuilder = new StringBuilder(editedString);
+			stringBuilder.insert(3, zeros);
+			//change edited stringbuilder to string so it can be added to String arrayList
+			String strBuilderToString = stringBuilder.toString();
+			editedFastaLines.add(strBuilderToString);
+			
 		}
 		
-		//set zero string
-		switch(numOfZeros)
-		{
-		case 1:
-			zeros = "0";
-			break;
-		case 2:
-			zeros = "00";
-			break;
-		case 3:
-			zeros = "000";
-			break;
-		case 4:
-			zeros = "0000";
-			break;
-		}
 		
-		/*
-		System.out.println("\n");
-		System.out.println("Num of digits: " + digitCount);
-		System.out.println("Num of zeros: " + numOfZeros);
-		System.out.println("Zero String: " + zeros);
-		*/
-		stringBuilder = new StringBuilder(editedString);
-		stringBuilder.insert(3, zeros);
-		
-		System.out.println(stringBuilder.toString());
-		//System.out.println(fileNameWithoutExt);
-		
-		return " ";
 	}
 	
 	public static void main(String[] args)
