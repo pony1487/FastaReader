@@ -1,5 +1,8 @@
 /*
- * REMEBER TO CLOSE FILES
+ * REMEBER TO CLOSE FILES( cant do that with files? Only input streams
+ * -Program will keep writing to the same output file if you open a new file or same file again without closing
+ * -need to get this to do that to a seperate new file (After you write it, clear ArrayList??)
+ * -Also need to ensure only opens FASTA files
  */
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -99,6 +102,8 @@ public class FastaReader extends JPanel implements ActionListener{
 				editString();
 				writeNewEditedFile();
 			}
+			
+			fileOpened = false;
 		}
        
     }//end actionPerformed()
@@ -169,6 +174,7 @@ public class FastaReader extends JPanel implements ActionListener{
 			}
 			bufferedWriter.flush();
 			
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -180,7 +186,7 @@ public class FastaReader extends JPanel implements ActionListener{
 	public void createGui()
 	{
 		 //Create and set up the window.
-        frame = new JFrame("FileChooserDemo");
+        frame = new JFrame("Fasta File Resequencer");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         buttonPanel.add(openButton);
